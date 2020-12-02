@@ -9,8 +9,7 @@ namespace _2
         {
             try
             {
-                return Password[Min - 1] == Character && Password[Max - 1] != Character
-                       || Password[Min - 1] != Character && Password[Max - 1] == Character;
+                return Password[Min - 1] == Character ^ Password[Max - 1] == Character;
             }
             catch (IndexOutOfRangeException)
             {
