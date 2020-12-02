@@ -7,10 +7,13 @@ namespace Helper
 {
     public static class FileReader
     {
+        public static int[] ToIntArray(this string[] arr) 
+            => arr.Select(x => Int32.Parse(x)).ToArray();
+
         public async static Task<int[]> ReadLines(string file)
-        {
-            string[] lines = await File.ReadAllLinesAsync(file);
-            return lines.Select(x => Int32.Parse(x)).ToArray();
-        }
+            => (await File.ReadAllLinesAsync(file)).ToIntArray();
+
+        public async static Task<int[]> ReadSeperated(string file, char separator = ',')
+            => (await File.ReadAllTextAsync(file)).Split(separator).ToIntArray();
     }
 }
