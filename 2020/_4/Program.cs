@@ -14,7 +14,7 @@ namespace _4
             
             //Part 1
             Console.WriteLine(inputs.Count(x => x.Valid));
-            
+
             //Part 2
             foreach (var p in inputs)
                 p.Parse(); //parse because not done in constructor for first

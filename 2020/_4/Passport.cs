@@ -1,54 +1,66 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace _4
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class Name : Attribute
+    {
+        public string Value { get; }
+
+        public Name(string name)
+            => Value = name;
+    }
+    
     public class Passport
     {
-        [Required, RegularExpression("amb|blu|brn|gry|grn|hzl|oth")]
-        public string EyeColor { get; private set; }
+        [Name("ecl"), Required, RegularExpression("amb|blu|brn|gry|grn|hzl|oth")]
+        public string EyeColor { get; set; }
         
-        [Required, RegularExpression("^#([a-fA-F0-9]{6})$")]
-        public string HairColor { get; private set; }
+        [Name("hcl"), Required, RegularExpression("^#([a-fA-F0-9]{6})$")]
+        public string HairColor { get; set; }
         
-        [Required, RegularExpression("^\\d{9}$")]
-        public string PassportId { get; private set; }
+        [Name("pid"), Required, RegularExpression("^\\d{9}$")]
+        public string PassportId { get; set; }
         
-        [Required, Range(2020, 2030)]
-        public int ExpirationYear { get; private set; }
+        [Name("eyr"), Required, Range(2020, 2030)]
+        public int ExpirationYear { get; set; }
         
-        [Required, Range(2010, 2020)]
-        public int IssueYear { get; private set; }
+        [Name("iyr"), Required, Range(2010, 2020)]
+        public int IssueYear { get; set; }
         
-        [Required, Range(1920, 2002)]
-        public int BirthYear { get; private set; }
+        [Name("byr"), Required, Range(1920, 2002)]
+        public int BirthYear { get; set; }
         
-        [Required, RegularExpression("^(1[5-8][0-9]|19[0-3])cm|(59|6[0-9]|7[0-6])in")]
-        public string Height { get; private set; }
-        public string CountryId { get; private set; }
+        [Name("hgt"), Required, RegularExpression("^(1[5-8][0-9]|19[0-3])cm|(59|6[0-9]|7[0-6])in")]
+        public string Height { get; set; }
+        
+        [Name("cid")]
+        public string CountryId { get; set; }
         
         public Dictionary<string, string> Items;
-        private readonly string[] requiredItems = { "ecl", "pid", "eyr", "hcl", "byr", "iyr", "hgt" };
-        private bool strict;
+        private readonly string[] _requiredItems = { "ecl", "pid", "eyr", "hcl", "byr", "iyr", "hgt" };
+        private bool _strict;
         
         public bool Valid
         {
             get
             {
                 if (Items.Count < 7) return false;
-                foreach (var item in requiredItems)
+                foreach (var item in _requiredItems)
                     if (!Items.ContainsKey(item))
                         return false;
 
-                if (strict)
+                if (_strict)
                 {
                     var ctx = new ValidationContext(this);
                     var res = new List<ValidationResult>();
                     if (!Validator.TryValidateObject(this, ctx, res, true))
                     {
-                        foreach (var err in res)
-                            Console.Error.WriteLine($"{err}");
+                        //foreach (var err in res)
+                        //    Console.Error.WriteLine($"{err}");
                         return false;
                     }
                 }
@@ -59,7 +71,7 @@ namespace _4
 
         public Passport(string input, bool strict = false)
         {
-            this.strict = strict;
+            this._strict = strict;
             Items = new Dictionary<string, string>();
             string[] values = input.Replace(Environment.NewLine, " ")
                 .Split(" ");
@@ -78,40 +90,24 @@ namespace _4
 
         public void Parse()
         {
-            this.strict = true;
-            foreach (var item in Items)
+            this._strict = true;
+            Type t = typeof(Passport);
+            foreach (var m in t.GetMembers())
             {
-                string key = item.Key;
-                string value = item.Value;
-                switch (key)
+                foreach (var attr in m.GetCustomAttributes(true))
                 {
-                    case "byr":
-                        BirthYear = Convert.ToInt32(value);
-                        break;
-                    case "iyr":
-                        IssueYear = Convert.ToInt32(value);
-                        break;
-                    case "eyr":
-                        ExpirationYear = Convert.ToInt32(value);
-                        break;
-                    case "hgt":
-                        Height = value;
-                        break;
-                    case "hcl":
-                        HairColor = value;
-                        break;
-                    case "ecl":
-                        EyeColor = value;
-                        break;
-                    case "pid":
-                        PassportId = value;
-                        break;
-                    case "cid":
-                        CountryId = value;
-                        break;
-                    default:
-                        Console.WriteLine("Unknown key: " + key);
-                        break;
+                    if (attr is Name)
+                    {
+                        PropertyInfo prop = t.GetProperty(m.Name);
+                        string key = (attr as Name).Value;
+                        if (!Items.ContainsKey(key))
+                            continue;
+                        
+                        if (Type.GetTypeCode(prop?.PropertyType) == TypeCode.Int32)
+                            prop?.SetValue(this, Convert.ToInt32(Items[key]));
+                        else
+                            prop?.SetValue(this, Items[key]);
+                    }
                 }
             }
         }
