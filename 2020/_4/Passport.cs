@@ -34,7 +34,7 @@ namespace _4
         [Name("byr"), Required, Range(1920, 2002)]
         public int BirthYear { get; set; }
         
-        [Name("hgt"), Required, RegularExpression("^(1[5-8][0-9]|19[0-3])cm|(59|6[0-9]|7[0-6])in")]
+        [Name("hgt"), Required, RegularExpression("^(1[5-8][0-9]|19[0-3])cm|(59|6[0-9]|7[0-6])in$")]
         public string Height { get; set; }
         
         [Name("cid")]
