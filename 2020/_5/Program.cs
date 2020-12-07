@@ -19,10 +19,17 @@ namespace _5
             
             //Zip returns pairs like: ([660 661], [661, 662], [662, 663]
             //So the first pair that differs 2 (like: [670, 672]) miss one step: the missing seat
-            //So return the lowest one + 1 of the greatest one - 1
+            //So return the lowest one + 1 or the greatest one - 1
             Console.WriteLine(ids
                 .Zip(ids.Skip(1), (left, right) => (left,right))
                 .First(p => p.Item2 - p.Item1 > 1).Item1 + 1);
+        }
+
+        static int GetIdSmart(string pass)
+        {
+            int row = Convert.ToInt32(pass[..7].Replace('F', '0').Replace('B', '1'), 2);
+            int col = Convert.ToInt32(pass[7..].Replace('L', '0').Replace('R', '1'), 2);
+            return (row * 8) + col;
         }
 
         static int GetId(string pass)
