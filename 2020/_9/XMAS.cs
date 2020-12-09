@@ -39,6 +39,9 @@ namespace _9
                     sum += _data[j];
                     if (sum == invalidNumber)
                         return _data[i..(j+1)];
+                    
+                    if(sum > invalidNumber) 
+                        break;
                 }
             }
             
