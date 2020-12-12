@@ -6,12 +6,11 @@ namespace _12
 {
     public class Ship
     {
-        private (int x, int y) _startingPoint;
+        private readonly (int x, int y) _startingPoint;
         private (int x, int y) _location;
         private readonly Queue<(char, int)> _instructions;
         private bool _useWaypoint;
         private (int x, int y) _waypoint;
-        private (int x, int y) _waypointLocation;
         
         private int _direction;
         private readonly (int, char)[] _directions = { (0, 'N'), (90, 'E'), (180, 'S'), (270, 'W')};
@@ -29,7 +28,6 @@ namespace _12
         public void UseWaypoint(int x = 10, int y = -1)
         {
             _waypoint = (x, y);
-            _waypointLocation = _waypoint;
             _useWaypoint = true;
         }
         
@@ -49,16 +47,13 @@ namespace _12
             if (_useWaypoint)
             {
                 double angle = FloorDegrees(360 - _direction + next);
-                angle = (Math.PI / 180) * angle;
+                angle = (Math.PI / 180) * angle; //convert degrees to radians
                 
                 double sin = Math.Round(Math.Sin(angle));
                 double cos = Math.Round(Math.Cos(angle));
                 double x = _waypoint.x * cos - _waypoint.y * sin;
                 double y = _waypoint.x * sin + _waypoint.y * cos;
                 _waypoint = ((int)x, (int)y);
-                _waypointLocation = _location;
-                _waypointLocation.x += _waypoint.x;
-                _waypointLocation.y += _waypoint.y;
             }
             else
                 _direction = next;
@@ -84,13 +79,9 @@ namespace _12
                 {
                     _location.x += _waypoint.x * val;
                     _location.y += _waypoint.y * val;
-                    _waypointLocation.x += _waypoint.x * val;
-                    _waypointLocation.y += _waypoint.y * val;
                 }
                 else
                 {
-                    _waypointLocation.x += movement.Item2;
-                    _waypointLocation.y += movement.Item1;
                     _waypoint.x += movement.Item2;
                     _waypoint.y += movement.Item1;
                 }
