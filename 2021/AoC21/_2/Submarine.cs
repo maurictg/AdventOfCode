@@ -4,10 +4,10 @@ namespace _2
 {
     public class Submarine
     {
-        public int X { get; set; }
-        public int Depth { get; set; }
-        public int Aim { get; set; }
-        private bool _aimMode;
+        public int X { get; private set; }
+        public int Depth { get; private set; }
+        private int Aim { get; set; }
+        private readonly bool _aimMode;
 
         public Submarine(int x = 0, int d = 0, bool aimMode = false)
         {
