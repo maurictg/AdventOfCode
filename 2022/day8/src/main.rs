@@ -23,10 +23,9 @@ fn main() {
                 let u = view_distance(&grid, x, y, Direction::Up);
                 let d = view_distance(&grid, x, y, Direction::Down);
 
-                // Part 1, if visible from any edge
+                // Part 1, if visible from any edge (and the edge itself is not taller or equal, which is stored in .1)
                 if (l.0 == x && l.1) || (r.0 == width - x - 1 && r.1)
                     || (u.0 == y && u.1) || (d.0 == height - y - 1 && d.1) {
-                        println!("Visible: {} {}", x,y);
                         visible += 1;
                 }
 

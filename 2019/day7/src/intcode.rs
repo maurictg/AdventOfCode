@@ -1,7 +1,7 @@
 pub struct IntCodeInterpreter {
     memory: Vec<i64>,
     pos: usize,
-    input: Option<i64>,
+    input: Vec<i64>,
     output: Option<i64>,
     debug_mode: bool
 }
@@ -16,8 +16,8 @@ pub enum Parameter {
 pub enum Action {
     Sum(Parameter, Parameter, usize),
     Multiply(Parameter, Parameter, usize),
-    Save(usize),
-    Load(Parameter),
+    Input(usize),
+    Output(Parameter),
     JumpIfTrue(Parameter, Parameter),
     JumpIfFalse(Parameter, Parameter),
     LessThan(Parameter, Parameter, usize),
@@ -30,7 +30,7 @@ impl IntCodeInterpreter {
         Self {
             memory: mem.split(',').map(|c|c.parse().unwrap()).collect(),
             pos: 0,
-            input: None,
+            input: Vec::new(),
             output: None,
             debug_mode: false
         }
@@ -56,8 +56,11 @@ impl IntCodeInterpreter {
         }
     }
 
-    pub fn run(mut self, input: Option<i64>) -> (i64, Option<i64>) {
-        self.input = input;
+    pub fn run(mut self, input: Option<&[i64]>) -> (i64, Option<i64>) {
+        if let Some(input) = input {
+            self.input = input.into_iter().rev().map(|i|*i).collect();
+        }
+
         while self.pos < self.memory.len() {
             let mem = &self.memory[self.pos..];
 
@@ -81,8 +84,8 @@ impl IntCodeInterpreter {
             match self.execute(match opcode {
                 1 => Action::Sum(param_as(a, 1), param_as(b, 2), mem[3] as usize),
                 2 => Action::Multiply(param_as(a, 1), param_as(b, 2), mem[3] as usize),
-                3 => Action::Save(mem[1] as usize),
-                4 => Action::Load(param_as(a, 1)),
+                3 => Action::Input(mem[1] as usize),
+                4 => Action::Output(param_as(a, 1)),
                 5 => Action::JumpIfTrue(param_as(a, 1), param_as(b, 2)),
                 6 => Action::JumpIfFalse(param_as(a, 1), param_as(b, 2)),
                 7 => Action::LessThan(param_as(a, 1), param_as(b, 2), mem[3] as usize),
@@ -117,11 +120,11 @@ impl IntCodeInterpreter {
                 let res = self.get_mem(x) * self.get_mem(y);
                 *self.memory.get_mut(z).unwrap() = res;
             },
-            Action::Save(i) => {
-                *self.memory.get_mut(i).unwrap() = self.input.expect("No input!");
+            Action::Input(i) => {
+                *self.memory.get_mut(i).unwrap() = self.input.pop().expect("No input!");
                 return Some(2);
             },
-            Action::Load(i) => {
+            Action::Output(i) => {
                 let value = self.get_mem(i);
                 self.output = Some(value);
                 return Some(2);
