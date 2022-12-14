@@ -9,7 +9,7 @@ enum Direction {
 }
 
 impl Direction {
-    pub fn n(&self) -> i32 {
+    pub fn n_steps(&self) -> i32 {
         match self {
             Direction::Up(n) => *n,
             Direction::Down(n) => *n,
@@ -85,24 +85,25 @@ fn main() {
 
     for d in directions.iter() {
         head = head + *d;
-        tail = follow(&tail, &head, Some(&mut reported));
+        while let Some(tnew) = follow(&tail, &head, true, &mut reported) {
+            tail = tnew;
+        }
     }
 
     println!("Part 1: {}", reported.len());
 
-    // Part 2: does NOT work as expected. But works for the examples
+    // Part 2
     let mut reported = HashSet::new();
     reported.insert(Point(0,0));
 
     let mut knots: Vec<Point> = repeat(Point(0,0)).take(KNOTS).collect();
 
     for d in directions.iter() {
-        knots[0] = knots[0] + *d;
-        for _ in 0..d.n() {
+        knots[0] = knots[0] + *d; // set head
+        for _ in 0..d.n_steps() {
             for k in 1..KNOTS {
-                knots[k] = follow_1(&knots[k], &knots[k - 1], if k == KNOTS - 1 {
-                    Some(&mut reported)
-                } else { None });
+                knots[k] = follow(&knots[k], &knots[k - 1], k == KNOTS - 1, &mut reported)
+                    .unwrap_or(knots[k]);
             }
         }
     }
@@ -110,39 +111,15 @@ fn main() {
     println!("Part 2: {}", reported.len());
 }
 
-/*fn _follow(me: &Point, other: &Point, report: bool, reported: &mut HashSet<Point>) -> Option<Point> {
-
-}*/
-
-fn follow_1(me: &Point, other: &Point, mut reported_points: Option<&mut HashSet<Point>>) -> Point {
+fn follow(me: &Point, other: &Point, report: bool, reported: &mut HashSet<Point>) -> Option<Point> {
     let change = (*other - *me).singlify();
     let res = me.clone() + change;
     if &res != other {
-        if reported_points.is_some() {
-            reported_points.as_mut().unwrap().insert(res);
+        if report {
+            reported.insert(res);
         }
-        res
+        Some(res)
     } else {
-        me.clone()
+        None
     }
-}
- 
-fn follow(me: &Point, other: &Point, mut reported_points: Option<&mut HashSet<Point>>) -> Point {
-    let mut new = me.clone();
-    
-    // Change on x or y axis
-    while &new != other {
-        let change = (*other - new).singlify();
-        let n = new + change;
-        if &n == other {
-            break;
-        } else {
-            new = n;
-            if reported_points.is_some() {
-                reported_points.as_mut().unwrap().insert(new);
-            }
-        }
-    }
-
-    new
 }
