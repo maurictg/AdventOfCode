@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct IntCodeInterpreter {
     memory: Vec<i64>,
     pos: usize,
@@ -41,6 +42,10 @@ impl IntCodeInterpreter {
         *self.memory.get_mut(2).unwrap() = verb;
     }
 
+    pub fn input(&mut self, val: i64) {
+        self.input.insert(0, val);
+    }
+
     pub fn enable_debug(&mut self) {
         self.debug_mode = true;
     }
@@ -56,11 +61,8 @@ impl IntCodeInterpreter {
         }
     }
 
-    pub fn run(mut self, input: Option<&[i64]>) -> (i64, Option<i64>) {
-        if let Some(input) = input {
-            self.input = input.into_iter().rev().map(|i|*i).collect();
-        }
-
+    pub fn run(&mut self) -> (i64, Option<i64>) {
+        self.pos = 0;
         while self.pos < self.memory.len() {
             let mem = &self.memory[self.pos..];
 
@@ -121,7 +123,7 @@ impl IntCodeInterpreter {
                 *self.memory.get_mut(z).unwrap() = res;
             },
             Action::Input(i) => {
-                *self.memory.get_mut(i).unwrap() = self.input.pop().expect("No input!");
+                *self.memory.get_mut(i).unwrap() = self.input.pop().expect(format!("No input! at: {}", self.pos).as_str());
                 return Some(2);
             },
             Action::Output(i) => {

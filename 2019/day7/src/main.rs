@@ -1,4 +1,4 @@
-use std::{rc::Rc, fs};
+use std::{fs};
 
 use intcode::IntCodeInterpreter;
 
@@ -17,14 +17,32 @@ impl Amplifier {
     }
 
     pub fn run(&self, phase: i64, input: i64) -> i64 {
-        let pc = IntCodeInterpreter::new(&self.program);
-        // pc.enable_debug();
-        pc.run(Some(&[phase, input])).1.unwrap()
+        let mut pc = IntCodeInterpreter::new(&self.program);
+        pc.input(phase);
+        pc.input(input);
+        pc.run().1.unwrap()
     }
 }
 
 fn main() {
     let program = fs::read_to_string("input.txt").unwrap();
+
+    // Part 1
     let amp = Amplifier::new(&program);
-    println!("{}", amp.run(0, 0));
+    let mut thrust: Vec<i64> = Vec::new();
+
+    for a in 0..5 {
+        for b in (0..5).filter(|x|*x!=a) {
+            for c in (0..5).filter(|x|*x!=a&&*x!=b) {
+                for d in (0..5).filter(|x|*x!=a&&*x!=b&&*x!=c) {
+                    for e in (0..5).filter(|x|*x!=a&&*x!=b&&*x!=c&&*x!=d) {
+                        let res = amp.run(a, amp.run(b, amp.run(c, amp.run(d, amp.run(e, 0)))));
+                        thrust.push(res);
+                    }
+                }
+            }
+        }
+    }
+
+    println!("Part 1: {}", thrust.iter().max().unwrap());
 }
